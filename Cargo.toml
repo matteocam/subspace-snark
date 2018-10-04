@@ -1,0 +1,19 @@
+[package]
+name = "subspace_snark"
+version = "0.0.1"
+authors = ["Matteo Campanelli <matteo.campanelli@gmail.com>"]
+
+[dependencies]
+bn = "0.4.3"
+rand = "~0.3.14"
+cute = "0.3.0"
+
+  
+
+[lib]
+name = "subspace_snark"
+path = "src/lib.rs"
+
+[[bin]]
+name = "subspace_snark_bin"
+path = "src/bin.rs"
