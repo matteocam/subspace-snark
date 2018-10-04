@@ -6,6 +6,7 @@ use rand::ThreadRng;
 
 use matrix::*;
 
+pub type SnarkMtx = Matrix<G1>;
 
 pub struct PP
 {
@@ -39,7 +40,7 @@ pub type Proof = G1;
 
 // Change so that allocation occurs earlier
 
-pub fn keygen(pp: &mut PP, m: Matrix) -> Crs
+pub fn keygen(pp: &mut PP, m: SnarkMtx) -> Crs
 {
     let mut k: Vec<Fr>  = Vec::with_capacity(pp.l);
     for _ in 1..pp.l {
@@ -49,15 +50,15 @@ pub fn keygen(pp: &mut PP, m: Matrix) -> Crs
     let a = pp.randomFldElem();
     let mut p: Vec<G1> = Vec::with_capacity(pp.t);
 
-    vector_matrix_mult(&k, &m, & mut p);
+    vector_matrix_mult(&k, &m, &mut p, G1::one());
     let mut c: Vec<Fr> = Vec::with_capacity(pp.l);
 
-    scalar_vector_mult(&a, &k, & mut c);
+    scalar_vector_mult(&a, &k, &mut c);
     (EK {p:p}, VK {c: vec_to_G2(&c), a: G2::one()*a})
 }
 
 pub fn prove(pp : &mut PP, ek: &EK,x: &Vec<Fr>) -> G1 {
-    inner_product(x, &ek.p)
+    inner_product(x, &ek.p, G1::one())
 }
 
 pub fn verify(vk: &VK, y: &VecG, pi: &Proof) -> bool {
