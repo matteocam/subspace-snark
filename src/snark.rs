@@ -40,10 +40,16 @@ pub type Proof = G1;
 
 // Change so that allocation occurs earlier
 
+
+pub fn vec_to_G2(v: & Vec<Fr>) ->  Vec< G2>
+{
+    c![G2::one()* *x, for x in v]
+}
+
 pub fn keygen(pp: &mut PP, m: SnarkMtx) -> Crs
 {
     let mut k: Vec<Fr>  = Vec::with_capacity(pp.l);
-    for _ in 1..pp.l {
+    for _ in 0..pp.l {
         k.push(pp.randomFldElem());
     }
 
@@ -67,4 +73,31 @@ pub fn verify(vk: &VK, y: &VecG, pi: &Proof) -> bool {
         res = res * pairing(y[i],vk.c[i]);
     }
     res == pairing(*pi, vk.a)
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    pub fn test_snark() {
+        let rng = rand::thread_rng();
+
+        let mut pp = PP {l:1, t: 2, rng:rng};
+
+        let m = Matrix::new(pp.l, pp.t, &vec![G1::one(), G1::one()]);
+
+        let x:Vec<Fr> = vec![Fr::one(), Fr::zero()];
+
+        let y:VecG = vec![G1::one()];
+
+        let (ek, vk) = keygen(&mut pp, m);
+
+        let pi = prove(&mut pp, &ek, &x);
+
+        let b = verify(&vk, &y, &pi);
+
+        assert!(b);
+    }
 }

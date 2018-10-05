@@ -64,12 +64,8 @@ pub fn scalar_vector_mult<T: Mul<Output = T>+Copy>(a: &T, v: &Vec<T>, res: & mut
         res.push((*a * v[i]));
     }
 }
-// XXX: Make sure vectors are passed right without being copied
 
-pub fn vec_to_G2(v: & Vec<Fr>) ->  Vec< G2>
-{
-    c![G2::one()* *x, for x in v]
-}
+
 
 #[cfg(test)]
 mod tests {
@@ -104,5 +100,13 @@ mod tests {
         assert!(y == G1::one()+G1::one());
     }
 
+    #[test]
+    fn test_scalar_vector_mult() {
+        let a = 10;
+        let u:Vec<i32> = (1..4).collect();
+        let mut y = Vec::with_capacity(u.len());
+        scalar_vector_mult(&a, &u, &mut y);
+        assert_eq!(y, [10,20,30]);
+    }
 
 }
