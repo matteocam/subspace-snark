@@ -50,7 +50,7 @@ pub fn keygen(pp: &mut PP, m: SnarkMtx) -> Crs
     let a = pp.randomFldElem();
     let mut p: Vec<G1> = Vec::with_capacity(pp.t);
 
-    vector_matrix_mult(&k, &m, &mut p, G1::one());
+    vector_matrix_mult(&k, &m, &mut p, G1::zero());
     let mut c: Vec<Fr> = Vec::with_capacity(pp.l);
 
     scalar_vector_mult(&a, &k, &mut c);
@@ -58,7 +58,7 @@ pub fn keygen(pp: &mut PP, m: SnarkMtx) -> Crs
 }
 
 pub fn prove(pp : &mut PP, ek: &EK,x: &Vec<Fr>) -> G1 {
-    inner_product(x, &ek.p, G1::one())
+    inner_product(x, &ek.p, G1::zero())
 }
 
 pub fn verify(vk: &VK, y: &VecG, pi: &Proof) -> bool {

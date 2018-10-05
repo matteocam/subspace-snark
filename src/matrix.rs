@@ -12,7 +12,7 @@ pub    nc: usize,
 pub    N: usize
 }
 
-impl<T: Clone> Matrix<T> {
+impl<T: Copy> Matrix<T> {
 
     // NB: Given column by column
     pub fn new(nr:usize, nc:usize, v:& Vec<T>) -> Matrix<T> {
@@ -30,26 +30,27 @@ impl<T: Clone> Matrix<T> {
         let idx = self.nr*j + i;
         let range = 0..self.N;
         assert!(range.contains(&idx));
-        self._m[idx].clone()
+        self._m[idx]
     }
 
     fn get_col(&self, c: usize) -> Vec<T> {
-        self._m[self.nr*c..self.nr*(c+1)].to_vec()
+        let col = self._m[self.nr*c..self.nr*(c+1)].to_vec();
+        col
     }
 }
 
 
-pub fn inner_product<T:Mul<U,Output = T>+Add<Output=T>+Clone, U:Clone>(v: &Vec<U>, w: &Vec<T>, zero:T) -> T
+pub fn inner_product<T:Mul<U,Output = T>+Add<Output=T>+Copy, U:Copy>(v: &Vec<U>, w: &Vec<T>, zero:T) -> T
 {
-    let mut res = zero;
+    let mut res:T = zero;
     for i in 0..v.len() {
-        let tmp:T = w[i].clone()*v[i].clone();
+        let tmp:T = w[i]*v[i];
         res = res + tmp;
     }
     res
 }
 
-pub fn vector_matrix_mult<T: Mul<U,Output = T>+Add<Output=T>+Clone+Copy,U:Clone>(v: &Vec<U>, m:&Matrix<T>, res: &mut Vec<T>, zero:T) {
+pub fn vector_matrix_mult<T: Mul<U,Output = T>+Add<Output=T>+Copy,U:Copy>(v: &Vec<U>, m:&Matrix<T>, res: &mut Vec<T>, zero:T) {
     // the result should contain every column of m multiplied by v
     for c in 0..m.nc {
         res.push(inner_product(&v, &m.get_col(c), zero));
@@ -57,17 +58,17 @@ pub fn vector_matrix_mult<T: Mul<U,Output = T>+Add<Output=T>+Clone+Copy,U:Clone>
 
 }
 
-pub fn scalar_vector_mult<T: Mul<Output = T>+Clone>(a: &T, v: &Vec<T>, res: & mut Vec<T>)
+pub fn scalar_vector_mult<T: Mul<Output = T>+Copy>(a: &T, v: &Vec<T>, res: & mut Vec<T>)
 {
     for i in 0..v.len() {
-        res.push(((*a).clone() * v[i].clone()));
+        res.push((*a * v[i]));
     }
 }
 // XXX: Make sure vectors are passed right without being copied
 
 pub fn vec_to_G2(v: & Vec<Fr>) ->  Vec< G2>
 {
-    c![G2::one()*x, for x in v.clone()]
+    c![G2::one()* *x, for x in v]
 }
 
 #[cfg(test)]
@@ -90,16 +91,16 @@ mod tests {
         assert_eq!(y, 8);
     }
 
-    fn testEq(a:G1, b:G1) -> bool {
-        (a-b).is_zero()
+    fn testEq(a:&G1, b:&G1) -> bool {
+        (*a-*b).is_zero()
     }
 
     #[test]
     fn test_inner_product_G1() {
         let u = vec![G1::one(), G1::zero()];
         let v:Vec<Fr> = vec![Fr::one()+Fr::one(), Fr::zero()];
-        let y = inner_product(&v,&u,G1::zero());
-        
+        let y = inner_product(&v,&u, G1::zero());
+
         assert!(y == G1::one()+G1::one());
     }
 
