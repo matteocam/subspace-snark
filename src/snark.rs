@@ -46,6 +46,8 @@ pub fn vec_to_G2(v: & Vec<Fr>) ->  Vec< G2>
     c![G2::one()* *x, for x in v]
 }
 
+// NB: Now the system is for y = Mx
+
 pub fn keygen(pp: &mut PP, m: SnarkMtx) -> Crs
 {
     let mut k: Vec<Fr>  = Vec::with_capacity(pp.l);
@@ -64,10 +66,13 @@ pub fn keygen(pp: &mut PP, m: SnarkMtx) -> Crs
 }
 
 pub fn prove(pp : &mut PP, ek: &EK,x: &Vec<Fr>) -> G1 {
+    assert_eq!(pp.l, x.len());
     inner_product(x, &ek.p, G1::zero())
 }
 
-pub fn verify(vk: &VK, y: &VecG, pi: &Proof) -> bool {
+pub fn verify(pp : &PP, vk: &VK, y: &VecG, pi: &Proof) -> bool {
+    assert_eq!(pp.t, y.len());
+
     let mut res = Gt::one();
     for i in 0..y.len() {
         res = res * pairing(y[i],vk.c[i]);
@@ -84,20 +89,31 @@ mod tests {
     pub fn test_snark() {
         let rng = rand::thread_rng();
 
-        let mut pp = PP {l:1, t: 2, rng:rng};
+        let mut pp = PP {l:2, t: 2, rng:rng};
 
-        let m = Matrix::new(pp.l, pp.t, &vec![G1::one(), G1::one()]);
+        /*
+            m =  1  2
+                 1  1
+        */
+        let m = Matrix::new(pp.l, pp.t, &vec![G1::one(), G1::one(), G1::one()+G1::one(), G1::one()]);
 
-        let x:Vec<Fr> = vec![Fr::one(), Fr::zero()];
+        /*
+            x =  [0, 1]
+        */
+        let x:Vec<Fr> = vec![Fr::zero(), Fr::one()];
 
-        let y:VecG = vec![G1::one()];
+        /*
+            y =  [1, 2]
+        */
+        let y:VecG = vec![G1::one()+G1::one(), G1::one(),];
 
         let (ek, vk) = keygen(&mut pp, m);
 
         let pi = prove(&mut pp, &ek, &x);
 
-        let b = verify(&vk, &y, &pi);
+        let b = verify(&pp, &vk, &y, &pi);
 
-        assert!(b);
+        assert_eq!(b, true);
+
     }
 }

@@ -31,7 +31,7 @@ pub fn test() {
 
     let pi = prove(&mut pp, &ek, &x);
 
-    let b = verify(&vk, &y, &pi);
+    let b = verify(&pp, &vk, &y, &pi);
 
     println!("Result is {}.", b);
 
